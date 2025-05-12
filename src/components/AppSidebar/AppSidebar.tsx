@@ -14,6 +14,7 @@ import {
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../shadcn/tabs";
 import {LOCAL_STORAGE_KEYS} from "@/registry/localStorageKeys";
 import {useEffect, useState} from "react";
+import {NavMainEdit} from "./NavMainEdit";
 
 type Mode = "edit" | "approval"
 
@@ -69,7 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <TabsTrigger className="rounded-sm h-8" onClick={() => setMode("approval")} value="approval">Approval</TabsTrigger>
                     </TabsList>
                     <TabsContent value="edit">
-                        <div></div>
+                        <NavMainEdit/>
                     </TabsContent>
                     <TabsContent value="approval">
                         <div></div>
