@@ -10,6 +10,9 @@ export const ICON_SIZE_SMALL = 14
 export const dynamicIcons = {
     Regex: dynamic(() => import("lucide-react").then((m) => ({ default: m.Regex }))),
     ChevronDown: dynamic(() => import("lucide-react").then((m) => ({ default: m.ChevronDown }))),
+    Power: dynamic(() => import("lucide-react").then((m) => ({ default: m.Power }))),
+    PowerOff: dynamic(() => import("lucide-react").then((m) => ({ default: m.PowerOff }))),
+
 } as const
 
 type KnownIcons = typeof dynamicIcons

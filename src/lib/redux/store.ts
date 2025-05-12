@@ -3,9 +3,11 @@ import documentsReducer from "./features/documents/documentsSlice"
 import {persistReducer} from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import {FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE} from "redux-persist/es/constants";
+import regexPatternsReducer from "./features/regexPatterns/regexPatternsSlice"
 
 const rootReducer = combineReducers({
     documents: documentsReducer,
+    regexPatterns: regexPatternsReducer
 })
 
 const persistConfig = {
