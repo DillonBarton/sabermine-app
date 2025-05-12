@@ -22,8 +22,12 @@ const regexPatternsSlice = createSlice({
         toggleRegexPattern(state, action: PayloadAction<RegexPattern["id"]>) {
             return state.map((pattern) => pattern.id === action.payload ? {...pattern, active: !pattern.active} : pattern)
         },
+        updateRegexPattern(state, action: PayloadAction<Pick<RegexPattern, "id" | "pattern">>) {
+            const {pattern: newPattern, id} = action.payload;
+            return state.map((pattern) => pattern.id === id ? {...pattern, pattern: newPattern} : pattern)
+        },
         deleteRegexPattern(state, action: PayloadAction<RegexPattern["id"]>) {
-            state = state.filter((pattern) => pattern.id !== action.payload)
+            return state.filter((pattern) => pattern.id !== action.payload)
         }
     }
 })
@@ -34,5 +38,5 @@ const selectRegexPatterns = (store: RootState) => store.regexPatterns
 const selectActiveRegexPatterns = (store: RootState) => store.regexPatterns.filter(pattern => pattern.active)
 
 export {selectRegexPatterns, selectActiveRegexPatterns}
-export const {createRegexPattern, toggleRegexPattern, deleteRegexPattern} = regexPatternsSlice.actions
+export const {createRegexPattern, toggleRegexPattern, deleteRegexPattern, updateRegexPattern} = regexPatternsSlice.actions
 export default regexPatternsSlice.reducer

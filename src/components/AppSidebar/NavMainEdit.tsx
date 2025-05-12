@@ -1,18 +1,19 @@
 import {SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem} from "../shadcn/sidebar";
 import {ChangeEvent, useState} from "react";
-import {cn} from "../../lib/utils";
+import {cn} from "@/lib/utils";
 import {Icon} from "../Icon";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "../shadcn/collapsible";
 import {Separator} from "../shadcn/separator";
 import {
-    createRegexPattern,
+    createRegexPattern, deleteRegexPattern,
     RegexPattern,
-    selectRegexPatterns, toggleRegexPattern
-} from "../../lib/redux/features/regexPatterns/regexPatternsSlice";
-import {useAppDispatch, useAppSelector} from "../../lib/redux/hooks";
+    selectRegexPatterns, toggleRegexPattern,
+    updateRegexPattern
+} from "@/lib/redux/features/regexPatterns/regexPatternsSlice";
+import {useAppDispatch, useAppSelector} from "@/lib/redux/hooks";
 import {Input} from "../shadcn/input";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../shadcn/tooltip";
 import {Button} from "../shadcn/button";
+import {Popover, PopoverContent, PopoverTrigger} from "../shadcn/popover";
 
 const RegexPatternItem = ({id, pattern, active}: RegexPattern) => {
 
@@ -24,26 +25,60 @@ const RegexPatternItem = ({id, pattern, active}: RegexPattern) => {
         dispatch(toggleRegexPattern(id))
     }
 
+    const handleEditToggle = () => {
+        setIsEditMode((isEditMode) => !isEditMode)
+        setNewPattern(pattern)
+    }
+
+    const handleDelete = () => {
+        dispatch(deleteRegexPattern(id))
+    }
+
     const handlePatternChange = (e: ChangeEvent<HTMLInputElement>) => {
         setNewPattern(e.target.value)
+    }
+
+    const handleUpdatePattern = () => {
+        dispatch(updateRegexPattern({id, pattern: newPattern}))
+        setIsEditMode(false)
     }
 
     return (
         <div className="flex gap-1 items-center">
             <Input key={id} disabled={!isEditMode} type="text" placeholder="Pattern..." value={newPattern} onChange={handlePatternChange}/>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="default" size="icon" onClick={handleToggleActive}>
-                            {active ? <Icon name="Power" className="text-red-500"/> : <Icon name="PowerOff" className="text-gray-500"/>}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{active ? "Disable" : "Enable"}</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={handleToggleActive}>
+                        <Icon name="EllipsisVertical"/>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto">
+                    <ul className="flex flex-col gap-2">
+                        <li className="flex gap-2 items-center">
+                            <Button variant="secondary" size="icon" onClick={handleToggleActive}>
+                                {active ? <Icon name="Power" className="text-red-500"/> : <Icon name="PowerOff" className="text-gray-500"/>}
+                            </Button>
+                            <span className="text-sm font-semibold">{active ? "Disable" : "Enable"}</span>
+                        </li>
+                        <li className="flex gap-2 items-center">
+                            <Button variant="secondary" size="icon" onClick={handleEditToggle}>
+                                {isEditMode ? <Icon name="PencilOff"/> : <Icon name="Pencil"/>}
+                            </Button>
+                            <span className="text-sm font-semibold">Edit</span>
+                        </li>
+                        <li className="flex gap-2 items-center">
+                            <Button variant="secondary" size="icon" onClick={handleDelete}>
+                                <Icon name="Trash2" className="text-red-500"/>
+                            </Button>
+                            <span className="text-sm font-semibold">Delete</span>
+                        </li>
+                    </ul>
+                </PopoverContent>
+            </Popover>
+            {newPattern !== pattern &&
+            <Button variant="default" size="icon" onClick={handleUpdatePattern}>
+                <Icon name="Check" className="text-green-500"/>
+            </Button>}
         </div>
 
     )

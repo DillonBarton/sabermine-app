@@ -12,6 +12,11 @@ export const dynamicIcons = {
     ChevronDown: dynamic(() => import("lucide-react").then((m) => ({ default: m.ChevronDown }))),
     Power: dynamic(() => import("lucide-react").then((m) => ({ default: m.Power }))),
     PowerOff: dynamic(() => import("lucide-react").then((m) => ({ default: m.PowerOff }))),
+    EllipsisVertical: dynamic(() => import("lucide-react").then((m) => ({ default: m.EllipsisVertical }))),
+    Trash2: dynamic(() => import("lucide-react").then((m) => ({ default: m.Trash2 }))),
+    Pencil: dynamic(() => import("lucide-react").then((m) => ({ default: m.Pencil }))),
+    PencilOff: dynamic(() => import("lucide-react").then((m) => ({ default: m.PencilOff }))),
+    Check: dynamic(() => import("lucide-react").then((m) => ({ default: m.Check }))),
 
 } as const
 
