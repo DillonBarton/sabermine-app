@@ -106,6 +106,18 @@ const AddNewRegexPatternItem = ({mode}: {mode: Mode}) => {
         }
     }
 
+    const handleAddNewClick = () => {
+        try {
+            new RegExp(pattern)
+            dispatch(createRegexPattern({pattern: pattern}))
+            setError(false)
+            setPattern("")
+        } catch (e) {
+            console.error(e)
+            setError(true)
+        }
+    }
+
     useEffect(() => {
         if(mode === "approval") {
             setError(false)
@@ -128,7 +140,7 @@ const AddNewRegexPatternItem = ({mode}: {mode: Mode}) => {
                 />
                 {
                     !!pattern &&
-                    <Button variant="outline" className="text-green-500" size="icon">
+                    <Button variant="outline" className="text-green-500" size="icon" onClick={handleAddNewClick}>
                         <Icon name="Plus"/>
                     </Button>
                 }
