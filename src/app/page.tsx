@@ -1,8 +1,11 @@
+import ProvidersWrapper from "../components/providers/ProvidersWrapper";
+import Client from "./client";
 
 
 export default function Home() {
   return (
-    <div className="">
-    </div>
+      <ProvidersWrapper>
+        <Client/>
+      </ProvidersWrapper>
   );
 }

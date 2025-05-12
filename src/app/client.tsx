@@ -1,14 +1,9 @@
-import {FunctionComponent} from "react"
+"use client"
 
-interface ClientProps {
-    children?: React.ReactNode;
-}
-
-const Client: FunctionComponent<ClientProps> = () => {
+const Client = () => {
 
     return (
         <div>
-
         </div>
     );
 };

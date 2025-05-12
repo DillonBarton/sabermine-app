@@ -1,14 +1,18 @@
+"use client"
+
 import {FunctionComponent} from "react"
-import {SidebarInset} from "../shadcn/sidebar";
+import {SidebarInset, SidebarProvider} from "../shadcn/sidebar";
+import {AppSidebar} from "../AppSidebar/AppSidebar";
 
 interface SidebarProviderProps {
     children: React.ReactNode;
 }
 
-const SidebarProvider: FunctionComponent<SidebarProviderProps> = ({children}) => {
+const SidebarProviderWrapper: FunctionComponent<SidebarProviderProps> = ({children}) => {
 
     return (
         <SidebarProvider>
+            <AppSidebar />
             <SidebarInset>
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                     {children}
@@ -18,4 +22,4 @@ const SidebarProvider: FunctionComponent<SidebarProviderProps> = ({children}) =>
     );
 };
 
-export default SidebarProvider;
+export default SidebarProviderWrapper;

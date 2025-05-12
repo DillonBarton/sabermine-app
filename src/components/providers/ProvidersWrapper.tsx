@@ -1,5 +1,5 @@
 import {FunctionComponent} from "react"
-import SidebarProvider from "./SidebarProvider";
+import SidebarProviderWrapper from "./SidebarProviderWrapper";
 
 interface ProvidersWrapperProps {
     children: React.ReactNode;
@@ -8,9 +8,9 @@ interface ProvidersWrapperProps {
 const ProvidersWrapper: FunctionComponent<ProvidersWrapperProps> = ({children}) => {
 
     return (
-        <SidebarProvider>
+        <SidebarProviderWrapper>
             {children}
-        </SidebarProvider>
+        </SidebarProviderWrapper>
     );
 };
 
