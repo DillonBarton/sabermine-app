@@ -11,23 +11,70 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/shadcn/sidebar"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "../shadcn/tabs";
+import {LOCAL_STORAGE_KEYS} from "@/registry/localStorageKeys";
+import {useEffect, useState} from "react";
+
+type Mode = "edit" | "approval"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+    const [mode, setMode] = useState<Mode>((localStorage.getItem(LOCAL_STORAGE_KEYS.MODE) ?? "approval") as Mode)
+
+    useEffect(() => {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.MODE, mode)
+    }, [mode]);
+
     return (
         <Sidebar variant="inset" {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <div></div>
-                            {/*TODO - Implement*/}
+                            <div className="w-full flex items-center">
+                                <svg style={{width: "2rem", height: "2rem"}} viewBox="0 0 39 34" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M0 10.039C0 4.495 4.495 0 10.04 0H29.11V13.445C34.171 13.961 38.119 18.236 38.119 23.433C38.119 28.977 33.624 33.472 28.079 33.472H9.009V20.027C3.948 19.51 0 15.236 0 10.039ZM9.965 11.136C8.106 11.136 6.598 12.643 6.598 14.503C6.598 16.031 7.615 17.321 9.009 17.733V13.393H24.66V15.601H11.217V17.871H11.242V20.079H11.217V22.336H28.154C30.013 22.336 31.521 20.829 31.521 18.969C31.521 17.441 30.504 16.151 29.11 15.739V20.079H13.477V17.871H26.902V15.601H26.884V13.393H26.902V11.136H9.965ZM26.902 6.685H10.026C6.937 6.685 4.433 9.189 4.433 12.278C4.433 12.622 4.464 12.958 4.523 13.285C5.079 10.792 7.305 8.928 9.965 8.928H26.902V6.685ZM10.04 2.208C5.714 2.208 2.208 5.714 2.208 10.039C2.208 10.441 2.238 10.835 2.296 11.22C2.813 7.412 6.077 4.477 10.026 4.477H26.903V2.208H10.04ZM11.216 26.787H28.093C31.182 26.787 33.686 24.283 33.686 21.194C33.686 20.85 33.655 20.513 33.596 20.187C33.04 22.68 30.814 24.544 28.154 24.544H11.216V26.787ZM28.079 31.264C32.405 31.264 35.911 27.758 35.911 23.433C35.911 23.031 35.881 22.637 35.823 22.252C35.306 26.06 32.042 28.995 28.093 28.995H11.216V31.264H28.079Z"
+                                        fill="black"/>
+                                </svg>
+                                <svg style={{width: "auto", height: "60%", flexShrink: "1"}} viewBox="0 0 89 21"
+                                     fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M76.1999 20.051H73.7319V0.271973H83.2009C87.0269 0.271973 88.9529 2.44197 88.9529 6.15897C88.9529 8.46597 87.8399 10.229 86.1039 10.88V11.043H87.1619C88.5459 11.043 89.0069 11.722 89.0069 13.024V20.051H86.5379V12.427H76.1999V20.051ZM76.1999 2.46897V10.284H82.7389C85.0189 10.284 86.3489 9.08997 86.3489 7.24497V5.48097C86.3489 3.49997 84.9919 2.46897 82.7389 2.46897H76.1999Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M69.87 20.051H56.71V0.271973H69.87V2.52397H59.179V8.79097H68.54V10.935H59.179V17.799H69.87V20.051Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M46.4838 20.051H37.3408V0.271973H46.7018C50.2008 0.271973 52.0468 2.17097 52.0468 5.29097C52.0468 7.37997 51.0428 9.06297 49.2248 9.74097V9.95797C51.4498 10.528 52.5628 12.156 52.5628 14.815C52.5628 17.989 50.2828 20.051 46.4838 20.051ZM39.7828 2.36097V8.95397H46.5388C48.3838 8.95397 49.5228 7.94997 49.5228 6.32197V4.93797C49.5228 3.33797 48.4378 2.36097 46.5108 2.36097H39.7828ZM39.7828 11.016V17.962H46.3218C48.5188 17.962 49.9568 16.904 49.9568 15.249V13.811C49.9568 12.047 48.7098 11.016 46.7288 11.016H39.7828Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M34.464 20.051H31.805L30.069 15.385H20.979L19.243 20.051H16.665L24.127 0.271973H26.949L34.464 20.051ZM22.987 9.95797L21.739 13.35H29.309L28.06 9.95797L25.618 2.76797H25.483L22.987 9.95797Z"
+                                        fill="black"/>
+                                    <path
+                                        d="M0 13.946H2.551C2.578 16.795 4.64 18.315 7.814 18.315C10.772 18.315 12.644 16.931 12.644 14.652C12.644 13.458 12.21 12.617 11.369 12.183C10.528 11.722 10.256 11.64 9.497 11.45L6.024 10.663L4.748 10.365C4.45 10.283 3.989 10.094 3.365 9.822C2.768 9.524 2.279 9.225 1.927 8.9C1.248 8.249 0.543003 7.001 0.543003 5.481C0.543003 3.772 1.167 2.442 2.442 1.465C3.717 0.489 5.372 0 7.462 0C9.605 0 11.314 0.516 12.617 1.52C13.919 2.524 14.598 3.934 14.625 5.725H12.101C11.966 3.338 10.202 2.008 7.462 2.008C4.748 2.008 3.12 3.283 3.12 5.237C3.12 6.295 3.582 7.082 4.423 7.543C5.291 7.977 5.779 8.113 6.648 8.303L10.365 9.117C13.621 9.822 15.249 11.586 15.249 14.408C15.249 16.28 14.57 17.718 13.187 18.776C11.83 19.807 10.012 20.322 7.733 20.322C5.237 20.322 3.311 19.725 1.981 18.532C0.651003 17.311 0 15.791 0 13.946Z"
+                                        fill="black"/>
+                                </svg>
+                            </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <div></div>
-                {/*TODO - Implement*/}
+                <Tabs value={mode} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 rounded-sm p-2 h-[auto]">
+                        <TabsTrigger className="rounded-sm h-8" onClick={() => setMode("edit")} value="edit">Edit</TabsTrigger>
+                        <TabsTrigger className="rounded-sm h-8" onClick={() => setMode("approval")} value="approval">Approval</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="edit">
+                        <div></div>
+                    </TabsContent>
+                    <TabsContent value="approval">
+                        <div></div>
+                    </TabsContent>
+                </Tabs>
             </SidebarContent>
             <SidebarFooter>
                 <div></div>
