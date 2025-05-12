@@ -17,6 +17,7 @@ export const dynamicIcons = {
     Pencil: dynamic(() => import("lucide-react").then((m) => ({ default: m.Pencil }))),
     PencilOff: dynamic(() => import("lucide-react").then((m) => ({ default: m.PencilOff }))),
     Check: dynamic(() => import("lucide-react").then((m) => ({ default: m.Check }))),
+    LetterText: dynamic(() => import("lucide-react").then((m) => ({ default: m.LetterText }))),
 
 } as const
 
