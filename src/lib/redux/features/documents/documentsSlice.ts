@@ -1,5 +1,7 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {faker} from "@faker-js/faker"
+import {createAppSelector} from "../../utils";
+import {RootState} from "../../store";
 
 type document = {
     content: string;
@@ -25,5 +27,9 @@ const documentsSlice = createSlice({
     }
 })
 
+const selectApprovedDocuments = (store: RootState)=> store.documents.filter(({approved}) => !approved)
+const approvedDocumentsSelector = createAppSelector([selectApprovedDocuments], (documents) => documents)
 
+
+export {selectApprovedDocuments, approvedDocumentsSelector}
 export default documentsSlice.reducer
