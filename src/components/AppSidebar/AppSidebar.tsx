@@ -5,26 +5,16 @@ import * as React from "react"
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/shadcn/sidebar"
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "../shadcn/tabs";
-import {LOCAL_STORAGE_KEYS} from "@/registry/localStorageKeys";
-import {useEffect, useState} from "react";
-import {NavMainEdit} from "./NavMainEdit";
+import {NavMain} from "./NavMain";
 
-type Mode = "edit" | "approval"
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
-    const [mode, setMode] = useState<Mode>((localStorage.getItem(LOCAL_STORAGE_KEYS.MODE) ?? "approval") as Mode)
-
-    useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_KEYS.MODE, mode)
-    }, [mode]);
 
     return (
         <Sidebar variant="inset" {...props}>
@@ -64,23 +54,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <Tabs value={mode} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 rounded-sm p-2 h-[auto]">
-                        <TabsTrigger className="rounded-sm h-8" onClick={() => setMode("edit")} value="edit">Edit</TabsTrigger>
-                        <TabsTrigger className="rounded-sm h-8" onClick={() => setMode("approval")} value="approval">Approval</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="edit">
-                        <NavMainEdit/>
-                    </TabsContent>
-                    <TabsContent value="approval">
-                        <div></div>
-                    </TabsContent>
-                </Tabs>
+                <NavMain/>
             </SidebarContent>
-            <SidebarFooter>
-                <div></div>
-                {/*TODO - Implement*/}
-            </SidebarFooter>
         </Sidebar>
     )
 }

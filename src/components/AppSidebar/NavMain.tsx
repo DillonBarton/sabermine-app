@@ -1,31 +1,37 @@
 import {SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem} from "../shadcn/sidebar";
-import {ChangeEvent, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
 import {cn} from "@/lib/utils";
 import {Icon} from "../Icon";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "../shadcn/collapsible";
 import {Separator} from "../shadcn/separator";
 import {
-    activeRegexPatternsUnapprovedExtractionsSelector,
-    createRegexPattern, deleteRegexPattern, Extraction,
-    RegexPattern, selectActiveRegexPatterns,
-    selectRegexPatterns, toggleRegexPattern,
+    createRegexPattern,
+    deleteRegexPattern,
+    RegexPattern, regexPatternsSelector,
+    selectRegexPatterns,
     updateRegexPattern
 } from "@/lib/redux/features/regexPatterns/regexPatternsSlice";
 import {useAppDispatch, useAppSelector} from "@/lib/redux/hooks";
 import {Input} from "../shadcn/input";
 import {Button} from "../shadcn/button";
 import {Popover, PopoverContent, PopoverTrigger} from "../shadcn/popover";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "../shadcn/card";
+import {
+    approveDocument, Extraction,
+    unapprovedDocumentSelector,
+    unapprovedExtractionsSelector, updateExtractions
+} from "../../lib/redux/features/documents/documentsSlice";
+import {ExtractionCard} from "../ExtractionCard";
+import {LOCAL_STORAGE_KEYS} from "../../registry/localStorageKeys";
+import {ToggleGroup, ToggleGroupItem} from "../shadcn/toggle-group";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../shadcn/tooltip";
+import {extractRegexMatches} from "../../lib/redux/utils";
+import {faker} from "@faker-js/faker";
 
-const RegexPatternItem = ({id, pattern, active}: RegexPattern) => {
+const RegexPatternItem = ({id, pattern, mode}: RegexPattern & {mode: Mode}) => {
 
     const [newPattern, setNewPattern] = useState(pattern);
     const [isEditMode, setIsEditMode] = useState(false);
     const dispatch = useAppDispatch()
-
-    const handleToggleActive = () => {
-        dispatch(toggleRegexPattern(id))
-    }
 
     const handleEditToggle = () => {
         setIsEditMode((isEditMode) => !isEditMode)
@@ -50,18 +56,12 @@ const RegexPatternItem = ({id, pattern, active}: RegexPattern) => {
             <Input key={id} disabled={!isEditMode} type="text" placeholder="Pattern..." value={newPattern} onChange={handlePatternChange}/>
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={handleToggleActive}>
+                    <Button variant="outline" size="icon" disabled={mode === "approval"}>
                         <Icon name="EllipsisVertical"/>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto">
                     <ul className="flex flex-col gap-2">
-                        <li className="flex gap-2 items-center">
-                            <Button variant="secondary" size="icon" onClick={handleToggleActive}>
-                                {active ? <Icon name="Power" className="text-red-500"/> : <Icon name="PowerOff" className="text-gray-500"/>}
-                            </Button>
-                            <span className="text-sm font-semibold">{active ? "Disable" : "Enable"}</span>
-                        </li>
                         <li className="flex gap-2 items-center">
                             <Button variant="secondary" size="icon" onClick={handleEditToggle}>
                                 {isEditMode ? <Icon name="PencilOff"/> : <Icon name="Pencil"/>}
@@ -86,7 +86,7 @@ const RegexPatternItem = ({id, pattern, active}: RegexPattern) => {
     )
 }
 
-const AddNewRegexPatternItem = () => {
+const AddNewRegexPatternItem = ({mode}: {mode: Mode}) => {
 
     const [pattern, setPattern] = useState("");
     const [error, setError] = useState(false);
@@ -106,39 +106,41 @@ const AddNewRegexPatternItem = () => {
         }
     }
 
+    useEffect(() => {
+        if(mode === "approval") {
+            setError(false)
+            setPattern("")
+        }
+    }, [mode]);
+
     return (
+
         <div className="flex flex-col gap-1">
-            <Input
-                type="text"
-                placeholder="Add new pattern..."
-                className={cn(error ? "border-red-500" : "")}
-                value={pattern}
-                onKeyDown={handleKeyDown}
-                onChange={(e) => setPattern(e.target.value)}
-            />
-            {error ? <p className="text-red-500 text-xs font-semibold pl-2">please enter a valid regular expression</p> : ""}
+            <div className="flex gap-2">
+                <Input
+                    type="text"
+                    placeholder="Add new pattern..."
+                    className={cn(error ? "border-red-500" : "")}
+                    value={pattern}
+                    onKeyDown={handleKeyDown}
+                    disabled={mode === "approval"}
+                    onChange={(e) => setPattern(e.target.value)}
+                />
+                {
+                    !!pattern &&
+                    <Button variant="outline" className="text-green-500" size="icon">
+                        <Icon name="Plus"/>
+                    </Button>
+                }
+
+            </div>
+            {error ?
+                <p className="text-red-500 text-xs font-semibold pl-2">please enter a valid regular expression</p> : ""}
         </div>
     )
 }
 
-const ExtractionPreview = ({content, approved, id, pattern}: Extraction & {pattern: RegexPattern["pattern"]}) => {
-
-    return(
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle className="text-sm">
-                    Extracted from: <span className="font-normal">{pattern}</span>
-                </CardTitle>
-                <CardDescription className="text-xs">{id}</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm font-bold">
-                {content}
-            </CardContent>
-        </Card>
-    )
-}
-
-const RegexPatternsSidebarSection = () => {
+const RegexPatternsSidebarSection = ({mode}: {mode: Mode}) => {
 
     const [isOpen, setIsOpen] = useState(true)
 
@@ -159,11 +161,11 @@ const RegexPatternsSidebarSection = () => {
             <SidebarMenu>
                 <Collapsible asChild defaultOpen={true} open={isOpen}>
                     <SidebarMenuItem className="flex flex-col gap-2">
-                        <AddNewRegexPatternItem/>
+                        <AddNewRegexPatternItem mode={mode}/>
                         <CollapsibleContent className="flex flex-col gap-2">
                             {
                                 regexPatterns.map( (regexPattern) => (
-                                    <RegexPatternItem key={regexPattern.id} {...regexPattern} />
+                                    <RegexPatternItem key={regexPattern.id} mode={mode} {...regexPattern} />
                                 ))
                             }
                         </CollapsibleContent>
@@ -181,7 +183,7 @@ const RegexPatternsSidebarSection = () => {
     )
 }
 
-const ExtractionsPreviewSidebarSection = () => {
+const ExtractionsSidebarSection = () => {
 
     const [isOpen, setIsOpen] = useState(true)
 
@@ -189,14 +191,14 @@ const ExtractionsPreviewSidebarSection = () => {
         setIsOpen((open) => !open)
     }
 
-    const extractions = useAppSelector((store) => activeRegexPatternsUnapprovedExtractionsSelector(store))
+    const extractions = useAppSelector((store) => unapprovedExtractionsSelector(store))
 
     return (
         <SidebarGroup>
             <SidebarGroupLabel>
                 <div className="flex gap-2 items-center">
                     <Icon name="LetterText" />
-                    <span>Preview Extractions</span>
+                    <span>Extractions</span>
                 </div>
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -204,8 +206,8 @@ const ExtractionsPreviewSidebarSection = () => {
                     <SidebarMenuItem className="flex flex-col gap-2">
                         <CollapsibleContent className="flex flex-col gap-2">
                             {
-                                extractions.map( (extraction) => (
-                                    <ExtractionPreview key={extraction.id} {...extraction}/>
+                                extractions?.map( (extraction) => (
+                                    <ExtractionCard key={extraction.id} {...extraction}/>
                                 ))
                             }
                         </CollapsibleContent>
@@ -223,12 +225,75 @@ const ExtractionsPreviewSidebarSection = () => {
     )
 }
 
-export function NavMainEdit() {
+type Mode = "edit" | "approval"
+
+export function NavMain() {
+
+    const [mode, setMode] = useState<Mode>((localStorage.getItem(LOCAL_STORAGE_KEYS.MODE) ?? "approval") as Mode)
+    const dispatch = useAppDispatch()
+    const document = useAppSelector((store) => unapprovedDocumentSelector(store))
+    const allPatterns = useAppSelector((store) => regexPatternsSelector(store))
+
+    useEffect(() => {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.MODE, mode)
+    }, [mode]);
+
+    const handleApproveDocument = () => {
+        if(!document) return;
+        dispatch(approveDocument(document?.id))
+    }
+
+    useEffect(() => {
+        if(!document) return;
+        dispatch(updateExtractions({
+            id: document.id,
+            extractions: allPatterns
+                .map((regexPattern) => regexPattern.pattern)
+                .flatMap((pattern) =>
+                    extractRegexMatches(document.content, pattern)
+                        .map((extraction) =>
+                            ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction)))}))
+    }, [document?.id]);
 
     return (
-        <div>
-            <RegexPatternsSidebarSection/>
-            <ExtractionsPreviewSidebarSection/>
+        <div className="flex flex-col gap-2">
+            <div className="flex justify-between">
+                <TooltipProvider>
+                <ToggleGroup type="single" value={mode}>
+                    <Tooltip>
+                    <ToggleGroupItem value="edit" aria-label="Toggle edit mode" onClick={() => setMode("edit")} asChild>
+                        <TooltipTrigger>
+                            <Icon name="Pencil"/>
+                        </TooltipTrigger>
+                    </ToggleGroupItem>
+                    <TooltipContent>
+                        Edit mode
+                    </TooltipContent>
+                </Tooltip>
+                    <Tooltip>
+                    <ToggleGroupItem value="approval" aria-label="Toggle approval mode" onClick={() => setMode("approval")} asChild>
+
+                            <TooltipTrigger>
+                                <Icon name="Check"/>
+                            </TooltipTrigger>
+
+                    </ToggleGroupItem>
+                    <TooltipContent>
+                        Approval
+                    </TooltipContent>
+                </Tooltip>
+                </ToggleGroup>
+                </TooltipProvider>
+                {mode === "approval" &&
+                    <Button variant="outline" className="text-green-500" onClick={handleApproveDocument}>
+                        Approve
+                    </Button>
+                }
+
+            </div>
+            <RegexPatternsSidebarSection mode={mode}/>
+            <ExtractionsSidebarSection/>
+
         </div>
     )
 }

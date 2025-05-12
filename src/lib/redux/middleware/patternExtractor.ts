@@ -1,58 +1,52 @@
-import { Middleware } from "@reduxjs/toolkit";
+import {Middleware} from "@reduxjs/toolkit";
 import {
     createRegexPattern,
+    CreateRegexPatternPayload,
+    deleteRegexPattern,
+    RegexPattern,
     updateRegexPattern,
-    updateExtractions,
-    CreateRegexPatternPayload, Extraction, UpdateRegexPatternPayload,
+    UpdateRegexPatternPayload,
 } from "@/lib/redux/features/regexPatterns/regexPatternsSlice";
 import {RootState} from "../store";
 import {faker} from "@faker-js/faker";
-
-function extractRegexMatches(input: string, patternString: string): string[] {
-    let pattern = patternString;
-    let flags = '';
-
-    const match = patternString.match(/^\/(.+)\/([gimsuy]*)$/);
-    if (match) {
-        pattern = match[1];
-        flags = match[2];
-    }
-
-    try {
-        const regex = new RegExp(pattern, flags);
-        if (flags.includes('g')) {
-            return Array.from(input.matchAll(regex), m => m[0]);
-        } else {
-            const singleMatch = input.match(regex);
-            return singleMatch ? [singleMatch[0]] : [];
-        }
-    } catch (e) {
-        console.error(e)
-        return [];
-    }
-}
+import {Extraction, updateExtractions} from "../features/documents/documentsSlice";
+import {extractRegexMatches} from "../utils";
 
 export const patternExtractor: Middleware<unknown, RootState> = store => next => action => {
 
     if(action && typeof action === "object" && "type" in action && typeof action.type === "string") {
         const state = store.getState();
-        const firstDoc = state.documents[0];
+        const doc = state.documents.find((document) => !document.approved);
+        if(!doc) return next(action);
         switch (action.type as string) {
             case createRegexPattern.type:
                 const createAction = action as { type: typeof createRegexPattern.type, payload: CreateRegexPatternPayload }
-                const createExtractions = extractRegexMatches(firstDoc.content, createAction.payload.pattern)
-                createAction.payload.extractions = createExtractions.map((extraction) => ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction));
+                const patternsForCreate = state.regexPatterns.map((regexPattern) => regexPattern.pattern).concat(createAction.payload.pattern)
+                store.dispatch(updateExtractions({
+                    id: doc.id,
+                    extractions: patternsForCreate.flatMap((pattern) => extractRegexMatches(doc.content, pattern).map((extraction) =>
+                        ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction)))}))
                 return next(createAction)
 
             case updateRegexPattern.type:
                 const updateAction = action as { type: typeof updateExtractions.type, payload: UpdateRegexPatternPayload }
-                const extractions = extractRegexMatches(firstDoc.content, updateAction.payload.pattern)
+                const patternsForUpdate = state.regexPatterns.map((regexPattern) => regexPattern.pattern).concat(updateAction.payload.pattern)
                 store.dispatch(updateExtractions({
-                    id: updateAction.payload.id,
-                    extractions: extractions.map((extraction) =>
-                        ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction))
-                }));
+                    id: doc.id,
+                    extractions: patternsForUpdate.flatMap((pattern) => extractRegexMatches(doc.content, pattern).map((extraction) =>
+                        ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction)))}))
                 return next(updateAction)
+
+            case deleteRegexPattern.type:
+                const deleteAction = action as { type: typeof deleteRegexPattern.type, payload: RegexPattern["id"] }
+                const patternsForDelete = state.regexPatterns
+                    .filter((regexPattern) => regexPattern.id !== deleteAction.payload)
+                    .map((regexPattern) => regexPattern.pattern)
+                store.dispatch(updateExtractions({
+                    id: doc.id,
+                    extractions: patternsForDelete.flatMap((pattern) => extractRegexMatches(doc.content, pattern).map((extraction) =>
+                        ({content: extraction, id: faker.string.uuid(), approved: false} as Extraction)))}))
+                return next(deleteAction)
         }
     }
 
